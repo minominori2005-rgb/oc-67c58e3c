@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>現代アート 公募ダッシュボード | 林稔里</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <p class="kicker">Open Calls Daily — Minori Hayashi</p>
+    <h1>現代アート 公募・芸術祭・レジデンス</h1>
+    <p class="sub">毎朝9時に自動更新。今すぐ応募できる公募を、おすすめ理由・締切・URL・CV価値つきで。気になるものは「保存」で取っておけます（全端末で同期）。</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab" id="tab-today" aria-selected="true" onclick="showTab('today')">本日のリスト</button>
+    <button class="tab" id="tab-openings" aria-selected="false" onclick="showTab('openings')">ギャラリー <span class="count" id="openings-count">(0)</span></button>
+    <button class="tab" id="tab-saved" aria-selected="false" onclick="showTab('saved')">保存済み <span class="count" id="saved-count">(0)</span></button>
+    <button class="tab" id="tab-submitted" aria-selected="false" onclick="showTab('submitted')">提出済み <span class="count" id="submitted-count">(0)</span></button>
+    <button class="tab print-tab" onclick="printDoc()" title="表示中のリストを印刷／PDF保存">🖨 印刷・PDF</button>
+    <span class="sync-status" id="sync-status" title="同期状態">…</span>
+  </div>
+
+  <main id="view-today"></main>
+  <main id="view-openings" class="hidden"></main>
+  <main id="view-saved" class="hidden"></main>
+  <main id="view-submitted" class="hidden"></main>
+
+  <footer>Open Calls Daily — 毎朝9時 自動更新 ／ minorihayashi.com</footer>
+</div>
+
+<script src="data.js"></script>
+<script>
+/* ===== 全端末で共有する保存先（JSONBin）===== */
+const SYNC = {
+  binId: "6a1efe56da38895dfe7c6ca8",
+  key: "$2a$10$tf1/cPjXXM0Ekf0SIczjL.tuKciYhrKzVr/vHmkiBUxvv/W9PGlgS",
+  base: "https://api.jsonbin.io/v3/b"
+};
+const LS_KEY = "savedOpenCalls_v1";
+const LS_NOTES = "openCallNotes_v1";
+const LS_SUB = "openCallSubmitted_v1";
+const LS_FILES = "openCallFiles_v1";
+
+/* メモリ上の：保存 / メモ / 提出済み / 添付ファイルリンク（id->[{name,url}]） */
+let SAVED = loadLocal();
+let NOTES = loadNotes();
+let SUBMITTED = loadSub();
+let FILES = loadFiles();
+let pushTimer = null;
+let online = true;
+
+function loadLocal() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }
+  catch (e) { return {}; }
+}
+function saveLocal() { localStorage.setItem(LS_KEY, JSON.stringify(SAVED)); }
+function loadNotes() {
+  try { return JSON.parse(localStorage.getItem(LS_NOTES)) || {}; }
+  catch (e) { return {}; }
+}
+function saveNotes() { localStorage.setItem(LS_NOTES, JSON.stringify(NOTES)); }
+function loadSub() {
+  try { return JSON.parse(localStorage.getItem(LS_SUB)) || {}; }
+  catch (e) { return {}; }
+}
+function saveSub() { localStorage.setItem(LS_SUB, JSON.stringify(SUBMITTED)); }
+function loadFiles() {
+  try { return JSON.parse(localStorage.getItem(LS_FILES)) || {}; }
+  catch (e) { return {}; }
+}
+function saveFiles() { localStorage.setItem(LS_FILES, JSON.stringify(FILES)); }
+
+function setStatus(state) {
+  const el = document.getElementById("sync-status");
+  if (!el) return;
+  if (state === "ok")       { el.textContent = "☁ 同期済み"; el.className = "sync-status ok"; }
+  else if (state === "sync"){ el.textContent = "↻ 同期中…"; el.className = "sync-status busy"; }
+  else                       { el.textContent = "⚠ オフライン（この端末に保存）"; el.className = "sync-status off"; }
+}
+
+/* 共有binから読み込む */
+async function pullRemote() {
+  setStatus("sync");
+  try {
+    const r = await fetch(SYNC.base + "/" + SYNC.binId + "/latest", {
+      headers: { "X-Master-Key": SYNC.key, "X-Bin-Meta": "false" }
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const data = await r.json();
+    const rs = (data && data.saved) || {};
+    const rn = (data && data.notes) || {};
+    const rsub = (data && data.submitted) || {};
+    const rf = (data && data.files) || {};
+    // 【消失防止】置き換えではなくマージ：ローカルだけにあるキーは保持、共通キーは遠隔を優先。
+    // これにより、空・壊れた遠隔データでローカルの保存が消えることを防ぐ。
+    const hadLocalOnly =
+      Object.keys(SAVED).some(x => !(x in rs)) ||
+      Object.keys(NOTES).some(x => !(x in rn)) ||
+      Object.keys(SUBMITTED).some(x => !(x in rsub)) ||
+      Object.keys(FILES).some(x => !(x in rf));
+    SAVED = Object.assign({}, SAVED, rs);
+    NOTES = Object.assign({}, NOTES, rn);
+    SUBMITTED = Object.assign({}, SUBMITTED, rsub);
+    FILES = Object.assign({}, FILES, rf);
+    saveLocal();
+    saveNotes();
+    saveSub();
+    saveFiles();
+    online = true;
+    setStatus("ok");
+    renderToday();
+    renderOpenings();
+    renderSaved();
+    renderSubmitted();
+    updateCount();
+    if (hadLocalOnly) schedulePush();   // ローカル固有のデータを遠隔へ復元・反映
+  } catch (e) {
+    online = false;
+    setStatus("off");
+  }
+}
+
+/* 共有binへ書き込む（少し待ってまとめて送る） */
+function schedulePush() {
+  saveLocal();
+  saveNotes();
+  saveSub();
+  saveFiles();
+  updateCount();
+  if (pushTimer) clearTimeout(pushTimer);
+  setStatus("sync");
+  pushTimer = setTimeout(pushRemote, 600);
+}
+async function pushRemote() {
+  try {
+    const r = await fetch(SYNC.base + "/" + SYNC.binId, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "X-Master-Key": SYNC.key },
+      body: JSON.stringify({ saved: SAVED, notes: NOTES, submitted: SUBMITTED, files: FILES })
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    online = true;
+    setStatus("ok");
+  } catch (e) {
+    online = false;
+    setStatus("off");
+  }
+}
+
+/* ===== 描画 ===== */
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function cvClass(cv) { return cv === "high" ? "cv-high" : cv === "low" ? "cv-low" : "cv-mid"; }
+function cvLabel(cv) { return cv === "high" ? "CV価値 高" : cv === "low" ? "CV価値 低" : "CV価値 中"; }
+
+/* 自分用メモ（id ごと・全端末同期・印刷にも出る） */
+function memoHTML(id) {
+  const v = esc(NOTES[id] || "");
+  return `<div class="memo"><label class="memo-label">📝 自分メモ</label>` +
+    `<textarea class="memo-input" placeholder="メモを書く…（自動保存・全端末で同期）" ` +
+    `oninput="onMemoInput('${esc(id)}', this.value)">${v}</textarea></div>`;
+}
+function onMemoInput(id, val) {
+  if (val && val.trim() !== "") NOTES[id] = val; else delete NOTES[id];
+  schedulePush();   // ローカル保存＋共有binへ反映（再描画はしない＝入力が途切れない）
+}
+
+/* 提出ファイルの添付（Googleドライブ等のリンク・全端末同期） */
+function attachHTML(id, opts) {
+  if (!opts || !opts.attach) return "";
+  const list = FILES[id] || [];
+  let h = `<div class="attach"><div class="attach-label">📎 提出ファイル（Googleドライブ等のリンク）</div>`;
+  if (list.length) {
+    h += `<ul class="attach-list">`;
+    list.forEach((f, i) => {
+      h += `<li><a class="attach-link" href="${esc(f.url)}" target="_blank" rel="noopener">📄 ${esc(f.name || f.url)}</a>` +
+           `<button class="attach-del" title="削除" onclick="removeAttachment('${esc(id)}',${i})">×</button></li>`;
+    });
+    h += `</ul>`;
+  }
+  h += `<div class="attach-add">
+    <input class="attach-in" id="att-name-${esc(id)}" type="text" placeholder="ファイル名（例：GRIDNEXT2026.pdf）">
+    <input class="attach-in" id="att-url-${esc(id)}" type="text" placeholder="Googleドライブの共有リンクを貼り付け">
+    <button class="attach-btn" onclick="addAttachment('${esc(id)}')">添付</button>
+  </div></div>`;
+  return h;
+}
+function addAttachment(id) {
+  const name = (document.getElementById("att-name-" + id).value || "").trim();
+  const url = (document.getElementById("att-url-" + id).value || "").trim();
+  if (!url) { alert("リンク（URL）を入力してください。"); return; }
+  if (!FILES[id]) FILES[id] = [];
+  FILES[id].push({ name: name || url, url: url });
+  schedulePush();
+  renderSubmitted();
+}
+function removeAttachment(id, idx) {
+  if (FILES[id]) { FILES[id].splice(idx, 1); if (!FILES[id].length) delete FILES[id]; }
+  schedulePush();
+  renderSubmitted();
+}
+
+/* カードのボタン群（保存☆ ＋ 提出済みにする） */
+function actionsHTML(item, opts) {
+  opts = opts || {};
+  const isSaved = !!SAVED[item.id];
+  const isSub = !!SUBMITTED[item.id];
+  const saveLabel = opts.saved ? "保存を外す" : (isSaved ? "保存済み" : "保存");
+  const saveIco = opts.saved ? "✕" : (isSaved ? "★" : "☆");
+  const subLabel = isSub ? "✓ 提出済み（取消）" : "提出済みにする";
+  return `<div class="card-actions">
+    <button class="save-btn" data-saved="${isSaved}" onclick="toggleSave('${esc(item.id)}')"><span class="ico">${saveIco}</span><span class="lbl">${saveLabel}</span></button>
+    <button class="submit-btn${isSub ? " on" : ""}" onclick="toggleSubmitted('${esc(item.id)}')">${subLabel}</button>
+  </div>`;
+}
+
+function toggleSubmitted(id) {
+  if (SUBMITTED[id]) {
+    delete SUBMITTED[id];               // 提出を取り消す → 元のリストへ戻る
+  } else {
+    const item = findItem(id) || SAVED[id] || SUBMITTED[id];
+    if (item) { SUBMITTED[id] = item; delete SAVED[id]; }  // 提出済みへ移行（保存からは外す）
+  }
+  renderToday();
+  renderOpenings();
+  renderSaved();
+  renderSubmitted();
+  schedulePush();
+}
+
+// 締切までの日数（実際の今日を基準に毎日自動計算）
+function parseYMD(s) {
+  const m = String(s == null ? "" : s).match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+  return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+}
+function daysFromToday(d) {
+  const t = new Date(); t.setHours(0, 0, 0, 0);
+  const x = new Date(d); x.setHours(0, 0, 0, 0);
+  return Math.round((x - t) / 86400000);
+}
+function countdownBadge(deadlineStr) {
+  const d = parseYMD(deadlineStr);
+  if (!d) return "";  // 「随時受付中」等は日数を出さない
+  const n = daysFromToday(d);
+  if (n < 0) return `<span class="badge count-badge over">受付終了</span>`;
+  if (n === 0) return `<span class="badge count-badge urgent">本日締切</span>`;
+  return `<span class="badge count-badge${n <= 7 ? " urgent" : ""}">締切まであと${n}日</span>`;
+}
+function opensBadge(opensStr) {
+  const d = parseYMD(opensStr);
+  if (!d) return "";
+  const n = daysFromToday(d);
+  if (n <= 0) return "";
+  return `<span class="badge count-badge soon">受付開始まであと${n}日</span>`;
+}
+function byDeadline(a, b) {
+  const da = parseYMD(a.deadline), db = parseYMD(b.deadline);
+  if (da && db) return da - db;
+  if (da && !db) return -1;   // 日付ありを先、随時を後ろ
+  if (!da && db) return 1;
+  return 0;
+}
+
+function cardHTML(item, opts) {
+  opts = opts || {};
+  const isSaved = !!SAVED[item.id];
+  const deadline = esc(item.deadline) + (item.deadlineNote ? " ※" + esc(item.deadlineNote) : "");
+  const extraTags = (item.tags || []).map(t => `<span class="badge">${esc(t)}</span>`).join("");
+  const url = esc(item.url);
+  const btnLabel = opts.saved ? "保存を外す" : (isSaved ? "保存済み" : "保存");
+  const btnIco = opts.saved ? "✕" : (isSaved ? "★" : "☆");
+  return `
+  <article class="card">
+    <div class="card-head">
+      <div>
+        <h3>${esc(item.title)}</h3>
+        <p class="org">${esc(item.org)}</p>
+      </div>
+      ${actionsHTML(item, opts)}
+    </div>
+    <div class="badges">
+      <span class="badge deadline">締切 ${deadline}</span>
+      ${countdownBadge(item.deadline)}
+      <span class="badge ${cvClass(item.cv)}">${cvLabel(item.cv)}</span>
+      ${extraTags}
+    </div>
+    <dl>
+      <dt>内容</dt><dd>${esc(item.what)}</dd>
+      <dt>おすすめ理由</dt><dd>${esc(item.why)}</dd>
+      <dt>費用</dt><dd>${esc(item.fee)}</dd>
+      <dt>URL</dt><dd><a href="${url}" target="_blank" rel="noopener">${url}</a></dd>
+      <dt>CV価値</dt><dd>${esc(item.cvText)}</dd>
+    </dl>
+    ${attachHTML(item.id, opts)}
+    ${memoHTML(item.id)}
+  </article>`;
+}
+
+function upcomingCardHTML(item, opts) {
+  const extraTags = (item.tags || []).map(t => `<span class="badge">${esc(t)}</span>`).join("");
+  const url = esc(item.url);
+  return `
+  <article class="card upcoming">
+    <div class="card-head">
+      <div>
+        <h3>${esc(item.title)}</h3>
+        <p class="org">${esc(item.org)}</p>
+      </div>
+    </div>
+    <div class="badges">
+      <span class="badge opens">受付開始 ${esc(item.opens)}</span>
+      ${opensBadge(item.opens)}
+      <span class="badge deadline">締切 ${esc(item.deadline)}</span>
+      <span class="badge ${cvClass(item.cv)}">${cvLabel(item.cv)}</span>
+      ${extraTags}
+    </div>
+    <dl>
+      <dt>内容</dt><dd>${esc(item.what)}</dd>
+      <dt>URL</dt><dd><a href="${url}" target="_blank" rel="noopener">${url}</a></dd>
+    </dl>
+    ${attachHTML(item.id, opts)}
+    ${memoHTML(item.id)}
+  </article>`;
+}
+
+function openingCountdown(dateStr) {
+  const d = parseYMD(dateStr);
+  if (!d) return "";
+  const n = daysFromToday(d);
+  if (n < 0) return `<span class="badge count-badge over">終了</span>`;
+  if (n === 0) return `<span class="badge count-badge urgent">本日</span>`;
+  if (n === 1) return `<span class="badge count-badge urgent">明日</span>`;
+  return `<span class="badge count-badge${n <= 7 ? " urgent" : ""}">あと${n}日</span>`;
+}
+
+function endsCountdown(dateStr) {
+  const d = parseYMD(dateStr);
+  if (!d) return "";
+  const n = daysFromToday(d);
+  if (n < 0) return `<span class="badge count-badge over">終了</span>`;
+  if (n === 0) return `<span class="badge count-badge urgent">本日まで</span>`;
+  if (n === 1) return `<span class="badge count-badge urgent">明日まで</span>`;
+  return `<span class="badge count-badge${n <= 7 ? " urgent" : ""}">終了まであと${n}日</span>`;
+}
+
+function openingCardHTML(item, opts) {
+  opts = opts || {};
+  const isSaved = !!SAVED[item.id];
+  const extraTags = (item.tags || []).map(t => `<span class="badge">${esc(t)}</span>`).join("");
+  const url = esc(item.url);
+  const btnLabel = opts.saved ? "保存を外す" : (isSaved ? "保存済み" : "保存");
+  const btnIco = opts.saved ? "✕" : (isSaved ? "★" : "☆");
+  const whenText = item.when || ("会期 " + (item.dates || ""));
+  const countdown = item.date ? openingCountdown(item.date) : (item.ends ? endsCountdown(item.ends) : "");
+  return `
+  <article class="card opening">
+    <div class="card-head">
+      <div>
+        <h3>${esc(item.gallery)}</h3>
+        <p class="org">${esc(item.area || "")}${item.area ? "｜" : ""}${esc(item.title || "")}</p>
+      </div>
+      ${actionsHTML(item, opts)}
+    </div>
+    <div class="badges">
+      <span class="badge opens">${esc(whenText)}</span>
+      ${countdown}
+      ${extraTags}
+    </div>
+    <dl>
+      ${item.artist ? `<dt>作家</dt><dd>${esc(item.artist)}</dd>` : ""}
+      ${item.note ? `<dt>メモ</dt><dd>${esc(item.note)}</dd>` : ""}
+      <dt>会場</dt><dd>${esc(item.address || item.gallery)}</dd>
+      <dt>情報</dt><dd><a href="${url}" target="_blank" rel="noopener">${url}</a></dd>
+    </dl>
+    ${attachHTML(item.id, opts)}
+    ${memoHTML(item.id)}
+  </article>`;
+}
+
+let galleryRegion = "all";
+let addFormFor = null;   // null / "saved" / "submitted"
+
+function regionOf(item) {
+  const area = String(item.area || "");
+  const tags = (item.tags || []).join(" ");
+  if (area.indexOf("東京") >= 0) return "tokyo";
+  if (/大阪|京都|兵庫|神戸|奈良|滋賀|和歌山|関西/.test(area) || /関西/.test(tags)) return "kansai";
+  return "other";
+}
+
+function setGalleryRegion(r) {
+  galleryRegion = r;
+  renderOpenings();
+  window.scrollTo(0, 0);
+}
+
+function regionFilterBar() {
+  const all = [].concat(window.OPENCALLS.openings || [], window.OPENCALLS.onview || []);
+  const c = { all: all.length, tokyo: 0, kansai: 0, other: 0 };
+  all.forEach(it => { c[regionOf(it)]++; });
+  const chip = (key, label) =>
+    `<button class="chip${galleryRegion === key ? " active" : ""}" onclick="setGalleryRegion('${key}')">${label}<span class="chip-n">${c[key]}</span></button>`;
+  return `<div class="region-filter">
+    ${chip("all", "すべて")}${chip("tokyo", "東京")}${chip("kansai", "関西")}${chip("other", "その他")}
+  </div>`;
+}
+
+function renderOpenings() {
+  const inRegion = it => (galleryRegion === "all" || regionOf(it) === galleryRegion) && !SUBMITTED[it.id];
+  const recs = (window.OPENCALLS.openings || []).filter(inRegion).sort((a, b) => {
+    const da = parseYMD(a.date), db = parseYMD(b.date);
+    if (da && db) return da - db; if (da) return -1; if (db) return 1; return 0;
+  });
+  const onv = (window.OPENCALLS.onview || []).filter(inRegion).sort((a, b) => {
+    const da = parseYMD(a.ends), db = parseYMD(b.ends);
+    if (da && db) return da - db; if (da) return -1; if (db) return 1; return 0;
+  });
+  const el = document.getElementById("view-openings");
+  let html = `<h2 class="report-date">全国コマーシャルギャラリー</h2>`;
+  html += `<p class="report-intro">林さんの戦略の要：現場（オープニング・展示）で関係者や作家と接点をつくる。☆で保存できます（全端末同期）。</p>`;
+  html += regionFilterBar();
+  html += `<h3 class="section-label">📣 これから行けるオープニング／レセプション</h3>`;
+  if (recs.length === 0) html += `<p class="empty">この条件で、日時を確認できた今後のレセプションはありません。</p>`;
+  else recs.forEach(it => { html += openingCardHTML(it, { saved: false }); });
+  html += `<h3 class="section-label">🖼 今見に行ける展示（会期中・訪問向き）</h3>`;
+  if (onv.length === 0) html += `<p class="empty">この条件の会期中の展示はありません。</p>`;
+  else onv.forEach(it => { html += openingCardHTML(it, { saved: false }); });
+  el.innerHTML = html;
+}
+
+function todayString() {
+  const w = ["日", "月", "火", "水", "木", "金", "土"];
+  const t = new Date();
+  return t.getFullYear() + "年" + (t.getMonth() + 1) + "月" + t.getDate() + "日（" + w[t.getDay()] + "）";
+}
+
+function renderToday() {
+  const d = window.OPENCALLS;
+  const stale = (d.updated && d.updated !== new Date().toISOString().slice(0, 10));
+  let html = `<h2 class="report-date">本日 ${todayString()} のリスト</h2>`;
+  html += `<p class="report-intro">公募リスト最終更新：${esc(d.updated || d.date)}${stale ? "（自動更新が未実行。締切までの日数は毎日自動更新されます）" : ""}</p>`;
+  html += `<p class="report-intro">${esc(d.intro)}</p>`;
+  d.sections.forEach(sec => {
+    html += `<h3 class="section-label">${esc(sec.label)}</h3>`;
+    sec.items.slice().filter(it => !SUBMITTED[it.id]).sort(byDeadline).forEach(it => { html += cardHTML(it, { saved: false }); });
+  });
+  html += `<h3 class="section-label">本日の優先おすすめ Top 3</h3><ol class="top3">`;
+  d.top3.forEach(t => { html += `<li><strong>${esc(t.title)}</strong>${esc(t.note)}</li>`; });
+  html += `</ol>`;
+  if (d.upcoming && d.upcoming.length) {
+    html += `<h3 class="section-label">📅 まもなく受付開始（本日時点では未開始）</h3>`;
+    d.upcoming.forEach(it => { html += upcomingCardHTML(it); });
+  }
+  html += `<div class="excluded"><h3>今回、対象外と判断したもの（誤って勧めないため記録）</h3><ul>`;
+  d.excluded.forEach(x => { html += `<li>${esc(x)}</li>`; });
+  html += `</ul></div>`;
+  html += `<p class="disclaimer">※${esc(d.disclaimer)}</p>`;
+  document.getElementById("view-today").innerHTML = html;
+}
+
+function isOpening(it) { return it && (it.gallery !== undefined || it.when !== undefined); }
+
+function addFormHTML(target) {
+  const sub = target === "submitted";
+  return `<div class="cf">
+    <label>名称（必須）<input id="cf-title" type="text" placeholder="公募・展示の名前"></label>
+    <label>主催・種別<input id="cf-org" type="text" placeholder="例：○○財団｜国内・助成 / 海外・レジデンス"></label>
+    <div class="cf-row">
+      <label>${sub ? "提出日／締切" : "締切"}<input id="cf-deadline" type="text" placeholder="2026/07/31 または 随時受付中"></label>
+      <label>CV価値<select id="cf-cv"><option value="high">高</option><option value="mid" selected>中</option><option value="low">低</option></select></label>
+    </div>
+    <label>内容<textarea id="cf-what" placeholder="どんな公募・展示か"></textarea></label>
+    <label>${sub ? "提出メモ・補足" : "おすすめ理由・補足"}<textarea id="cf-why" placeholder="所感・狙い・提出物など"></textarea></label>
+    <div class="cf-row">
+      <label>費用<input id="cf-fee" type="text" placeholder="応募料など"></label>
+      <label>URL<input id="cf-url" type="text" placeholder="https://..."></label>
+    </div>
+    <button class="cf-submit" onclick="addCustomItem('${target}')">${sub ? "提出済みに追加" : "追加して保存"}</button>
+  </div>`;
+}
+
+function addCustomSection(target) {
+  const open = addFormFor === target;
+  const label = target === "submitted" ? "＋ 提出した公募を自分で追加" : "＋ 自分で見つけた公募を追加";
+  return `<div class="add-custom">
+    <button class="chip add-toggle" onclick="toggleAddForm('${target}')">${open ? "× 入力を閉じる" : label}</button>
+    ${open ? addFormHTML(target) : ""}
+  </div>`;
+}
+
+function renderTab(target) { if (target === "submitted") renderSubmitted(); else renderSaved(); }
+function toggleAddForm(target) { addFormFor = (addFormFor === target ? null : target); renderTab(target); }
+
+function addCustomItem(target) {
+  const v = id => (document.getElementById(id).value || "").trim();
+  const title = v("cf-title");
+  if (!title) { alert("名称を入力してください。"); return; }
+  const newId = "user-" + Date.now();
+  const obj = {
+    id: newId, title: title,
+    org: v("cf-org") || "自分で追加",
+    deadline: v("cf-deadline") || "随時受付中",
+    cv: document.getElementById("cf-cv").value,
+    cvText: "（自分で追加した情報）",
+    tags: target === "submitted" ? ["自分で追加", "提出済み"] : ["自分で追加"],
+    what: v("cf-what"), why: v("cf-why"), fee: v("cf-fee"), url: v("cf-url")
+  };
+  if (target === "submitted") SUBMITTED[newId] = obj; else SAVED[newId] = obj;
+  addFormFor = null;
+  schedulePush();
+  renderTab(target);
+}
+
+function renderSaved() {
+  const items = Object.keys(SAVED).map(id => SAVED[id]).filter(it => !SUBMITTED[it.id])
+    .sort((a, b) => String(a.deadline || a.date || "").localeCompare(String(b.deadline || b.date || "")));
+  const el = document.getElementById("view-saved");
+  let html = `<h2 class="report-date">保存済み</h2><p class="report-intro">☆で保存した公募・展示と、自分で見つけて追加した情報。各カードに自分メモも書けます。応募したら「提出済みにする」で提出済みタブへ移動します。全端末同期。</p>`;
+  html += addCustomSection("saved");
+  if (items.length === 0) {
+    html += `<p class="empty">まだありません。各カードの「☆ 保存」か、上の「＋ 自分で見つけた公募を追加」から登録できます。</p>`;
+  } else {
+    items.forEach(it => { html += isOpening(it) ? openingCardHTML(it, { saved: true }) : cardHTML(it, { saved: true }); });
+  }
+  el.innerHTML = html;
+}
+
+function renderSubmitted() {
+  const items = Object.keys(SUBMITTED).map(id => SUBMITTED[id])
+    .sort((a, b) => String(a.deadline || a.date || "").localeCompare(String(b.deadline || b.date || "")));
+  const el = document.getElementById("view-submitted");
+  let html = `<h2 class="report-date">提出済み</h2><p class="report-intro">応募・提出した公募をまとめる場所。各カードの「提出済みにする」を押すとここに移動します。自分で提出したものも追加できます。各カードに自分メモも書けます。全端末同期。</p>`;
+  html += addCustomSection("submitted");
+  if (items.length === 0) {
+    html += `<p class="empty">まだありません。各カードの「提出済みにする」か、上の「＋ 提出した公募を自分で追加」から登録できます。</p>`;
+  } else {
+    items.forEach(it => { html += isOpening(it) ? openingCardHTML(it, { saved: false, attach: true }) : cardHTML(it, { saved: false, attach: true }); });
+  }
+  el.innerHTML = html;
+}
+
+function findItem(id) {
+  let found = null;
+  (window.OPENCALLS.sections || []).forEach(sec =>
+    sec.items.forEach(it => { if (it.id === id) found = it; }));
+  (window.OPENCALLS.upcoming || []).forEach(it => { if (it.id === id) found = it; });
+  (window.OPENCALLS.openings || []).forEach(it => { if (it.id === id) found = it; });
+  (window.OPENCALLS.onview || []).forEach(it => { if (it.id === id) found = it; });
+  if (!found && SAVED[id]) found = SAVED[id];
+  if (!found && SUBMITTED[id]) found = SUBMITTED[id];
+  return found;
+}
+
+function toggleSave(id) {
+  if (SAVED[id]) {
+    delete SAVED[id];
+  } else {
+    const item = findItem(id) || SAVED[id];
+    if (item) SAVED[id] = item;
+  }
+  renderToday();
+  renderOpenings();
+  renderSaved();
+  schedulePush();   // 共有binへ反映
+}
+
+function updateCount() {
+  const savedN = Object.keys(SAVED).filter(id => !SUBMITTED[id]).length;
+  document.getElementById("saved-count").textContent = "(" + savedN + ")";
+  const sc = document.getElementById("submitted-count");
+  if (sc) sc.textContent = "(" + Object.keys(SUBMITTED).length + ")";
+  const oc = document.getElementById("openings-count");
+  if (oc) oc.textContent = "(" + (((window.OPENCALLS.openings || []).length) + ((window.OPENCALLS.onview || []).length)) + ")";
+}
+
+function printDoc() {
+  // 表示中のリスト（本日／オープニング／保存済み）をそのまま印刷／PDF保存
+  window.print();
+}
+
+function showTab(which) {
+  const views = { today: "view-today", openings: "view-openings", saved: "view-saved", submitted: "view-submitted" };
+  const tabs = { today: "tab-today", openings: "tab-openings", saved: "tab-saved", submitted: "tab-submitted" };
+  Object.keys(views).forEach(k => {
+    document.getElementById(views[k]).classList.toggle("hidden", k !== which);
+    document.getElementById(tabs[k]).setAttribute("aria-selected", k === which);
+  });
+  if (which === "openings") renderOpenings();
+  if (which === "saved") renderSaved();
+  if (which === "submitted") renderSubmitted();
+  window.scrollTo(0, 0);
+}
+
+/* ===== 起動 ===== */
+renderToday();
+renderOpenings();
+renderSubmitted();
+updateCount();
+pullRemote();   // 起動時に共有binから最新の保存リストを取得
+// 別端末での変更を取り込むため、画面に戻ったとき再取得
+document.addEventListener("visibilitychange", () => { if (!document.hidden) pullRemote(); });
+window.addEventListener("focus", pullRemote);
+</script>
+</body>
+</html>
