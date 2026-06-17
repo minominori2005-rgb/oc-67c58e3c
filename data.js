@@ -2,9 +2,9 @@
 // index.html はこの window.OPENCALLS を読んでカードを描画します。
 // 掲載基準：本日時点で公式ページ（応募ページ/募集要項）または信頼できる一次的告知で「受付中（受付期間が開始済み）」＋締切を確認できたものだけ。
 window.OPENCALLS = {
-  date: "2026年6月15日（月）",
-  updated: "2026-06-15",
-  intro: "本日（2026/6/15）時点で応募ページ・募集要項まで確認し、受付中＋締切を確認できたものを掲載。受付開始前は『まもなく受付開始』に分離。林稔里をジャンル横断の現代アーティストとして選定。提出済み（GRID NEXT / FF Seoul / NCA / SUBTEXT / YAU / MIDTOWN / SUPERGAU / Saatchi）は除外。",
+  date: "2026年6月17日（水）",
+  updated: "2026-06-17",
+  intro: "本日（2026/6/17）時点で応募ページ・募集要項まで確認し、受付中＋締切を確認できたものを掲載。受付開始前は『まもなく受付開始』に分離。林稔里をジャンル横断の現代アーティストとして選定。提出済み（GRID NEXT / FF Seoul / NCA / SUBTEXT / YAU / MIDTOWN / SUPERGAU / Saatchi）は除外。",
   sections: [
     {
       label: "A. 国内｜芸術祭・賞・助成・レジデンス（受付中）",
@@ -16,7 +16,8 @@ window.OPENCALLS = {
         { id: "holbein-scholarship-39", title: "ホルベイン・スカラシップ奨学生（第39回）", org: "ホルベイン｜国内・制作支援（画材提供）", deadline: "2026/07/31", cv: "low", cvText: "低。展示歴ではなく画材支援。CV価値は小さいが制作の実利が大きい。", tags: ["18〜45歳", "国内在住", "画材支援"], what: "色材を使用した制作を行う18〜45歳・日本国内在住者対象。最大7名に総額30万円相当の絵具・筆・キャンバス等を3回に分けて提供。奨学期間2026/12〜2027/11。", why: "《片染め》・オイルスティック作品の画材コストを実質的に下げられる。応募料は無料。", fee: "締切は2026/7/31 12:00。応募無料。", url: "https://www.holbein.co.jp/scholarship/" },
         { id: "art-olympia-2026", title: "ART OLYMPIA 2026", org: "ART OLYMPIA実行委員会｜国内発・国際公募展", deadline: "2026/07/31", cv: "high", cvText: "高。グランプリ1000万円という大型賞金と国際的な展示機会のある公募。年齢制限なし（全応募者部門）。", tags: ["平面のみ", "壁面展示", "年齢不問"], what: "油彩・日本画・版画・水彩・写真・ミクストメディア等、壁面展示可能な平面作品が対象（サイズ117×117cm以内・厚さ10cm以内・重量20kg以内）。立体・映像・AI使用・共同制作は不可。応募受付期間は2026/4/1〜7/31、会期は2026年11月。", why: "写真・転写・金属を組み合わせた壁面mixed media作品として《片染め》などの平面シリーズを国際公募の大型賞に出せる。", fee: "締切は2026/7/31。応募料は1点12,000円〜（部門・点数により変動）。", url: "https://artolympia.jp/" },
         { id: "shinkyo-kansai-art-compe-5", title: "第5回 関西アートコンペ（新協美術会）", org: "一般社団法人 新協美術会｜国内・関西公募展", deadline: "2026/09/20", cv: "mid", cvText: "中。地元・関西（大阪）で発表できる公募展。彫刻・工芸部門に金属・mixed mediaの立体作品を出せる。", tags: ["関西・大阪", "彫刻・工芸部門あり", "年齢不問"], what: "第69回新協美術会関西巡回展と併催の公募展。絵画・彫刻・工芸・写真の4部門、年齢・経験不問。会期は2026/10/20〜25、会場は天王寺ギャラリー（大阪市立美術館）。", why: "金属・転写・mixed mediaの立体作品を彫刻・工芸部門に出品し、地元関西での展示実績を作れる。", fee: "締切は2026/9/20。参加費は一般4,500円（直接搬出は4,000円）。", url: "https://www.shinkyoart.or.jp/" },
-        { id: "art-award-in-the-cube-2027", title: "Art Award IN THE CUBE 2027（清流の国ぎふ芸術祭）", org: "岐阜県・岐阜県美術館｜国内・公募展（インスタレーション形式）", deadline: "2026/07/10", cv: "high", cvText: "非常に高。幅4.8m×奥行4.8m×高さ3.6mの専用キューブ空間にインスタレーションを設計できる公募。大賞500万円、入選約10点にも製作支援60万円。サイトスペシフィックな実践を国内最大規模で発表できる。", tags: ["年齢・国籍不問", "インスタレーション専用空間", "新作限定"], what: "テーマは『なやんでうごけ 創造の水脈を探して』。幅4.8m×奥行4.8m×高さ3.6mのキューブ空間での新作インスタレーションを1人/1組につき1点で公募。大賞500万円、奨励賞各100万円、入選約10点に製作支援60万円。応募期間は2026/3/18〜7/10。", why: "写真・金属・転写・mixed mediaを横断するサイトスペシフィックなインスタ案を、専用の大型キューブ空間でそのまま実現できる。賞金規模・支援体制も国内最大級。", fee: "締切は2026/7/10 23:59。", url: "https://www.aaic.pref.gifu.lg.jp/application" }
+        { id: "art-award-in-the-cube-2027", title: "Art Award IN THE CUBE 2027（清流の国ぎふ芸術祭）", org: "岐阜県・岐阜県美術館｜国内・公募展（インスタレーション形式）", deadline: "2026/07/10", cv: "high", cvText: "非常に高。幅4.8m×奥行4.8m×高さ3.6mの専用キューブ空間にインスタレーションを設計できる公募。大賞500万円、入選約10点にも製作支援60万円。サイトスペシフィックな実践を国内最大規模で発表できる。", tags: ["年齢・国籍不問", "インスタレーション専用空間", "新作限定"], what: "テーマは『なやんでうごけ 創造の水脈を探して』。幅4.8m×奥行4.8m×高さ3.6mのキューブ空間での新作インスタレーションを1人/1組につき1点で公募。大賞500万円、奨励賞各100万円、入選約10点に製作支援60万円。応募期間は2026/3/18〜7/10。", why: "写真・金属・転写・mixed mediaを横断するサイトスペシフィックなインスタ案を、専用の大型キューブ空間でそのまま実現できる。賞金規模・支援体制も国内最大級。", fee: "締切は2026/7/10 23:59。", url: "https://www.aaic.pref.gifu.lg.jp/application" },
+        { id: "scarts-koubo-2027", title: "SCARTS企画公募2027", org: "札幌文化芸術交流センターSCARTS｜国内・企画公募", deadline: "2026/07/17", cv: "mid", cvText: "中。施設・設備・専門スタッフの提供込みで企画を実現できる。年齢・居住・拠点・ジャンル不問で、サイトスペシフィックな展示構成を試す機会になる。", tags: ["年齢・居住・拠点不問", "ジャンル自由", "施設・設備提供"], what: "札幌市民交流プラザ内のSCARTSの施設・備品・専門スタッフの支援を提供し、文化芸術活動の企画実現を後押しする公募。対象は文化芸術活動を行う団体・個人（年齢・居住・拠点不問）、ジャンル自由。受付は2026/6/15〜7/17必着。", why: "施設・設備・技術スタッフの支援を受けながら、サイトスペシフィックなインスタレーション提案を関西以外の地で実現できる機会。応募無料。", fee: "受付期間は2026/6/15〜7/17。応募無料。", url: "https://www.sapporo-community-plaza.jp/scartskoubo.html" }
       ]
     },
     {
@@ -28,7 +29,8 @@ window.OPENCALLS = {
         { id: "beers-london-2026", title: "BEERS London – Group Exhibition 2026", org: "BEERS London｜海外・グループ展＋レジデンス枠", deadline: "2026/08/01", cv: "mid", cvText: "中〜高。ロンドンのギャラリー主催の選抜グループ展。海外展示歴になる。", tags: ["全メディア対象", "応募料 £10"], what: "全メディア対象の若手向けグループ展。約12名を選出し、2026年10月にロンドンで開催。40日間レジデンス枠との同時応募も可能。", why: "引き継ぎ書でも海外若手導線として挙がっていた先。素材・支持体へ展開する作家として出せる。", fee: "締切は2026/8/1。応募料は展示のみ£10／展示＋レジデンス£25。", url: "https://opencall.beerslondon.com/" },
         { id: "nomad-art-prize-2026", title: "Nomad Art Prize 2026（リスボン）", org: "Nomad Art Prize（ポルトガル）｜海外・賞＋レジデンス", deadline: "2026/07/30", cv: "mid", cvText: "中。8名選出で各€1,000＋リスボン1週間レジデンス（往復渡航・宿泊全額）＋LX Factory展。渡航込みは魅力。", tags: ["メディア不問", "16歳以上", "応募料 €50"], what: "16歳以上・国籍不問、1〜3点で応募。テーマは移動・移転・根と移動の緊張。選出8名は€1,000＋リスボン滞在（渡航・宿泊込み）＋2026/10のグループ展。", why: "都市・移動・見過ごされる存在という主題と接続。ジャンル横断の作品で出せ、渡航込みレジデンスが付く。", fee: "締切は2026/7/30。応募料€50（提出点数で段階制）。", url: "https://nomadartprize.com/" },
         { id: "vh-award-7", title: "Hyundai Motor Group – The 7th VH AWARD", org: "Hyundai Motor Group｜国際・メディアアート賞", deadline: "2026/07/21", cv: "high", cvText: "高（主軸はメディアアート）。通れば強いが映像・デジタル寄り。挑戦枠。", tags: ["メディアアート", "アジアの文脈"], what: "アジアの文脈に関わる新興メディアアーティスト対象の国際賞。制作グラント、Ars Electronicaでのオンラインレジデンス、世界各地での展示。グランプリは追加$30,000。", why: "写真の物質化・反射・透明面を映像／デジタル／インスタへ展開できるなら挑戦余地。ジャンル横断の射程を試す枠。", fee: "締切は2026/7/21。", url: "https://vhaward.com/" },
-        { id: "photovogue-global-open-call-2026", title: "PhotoVogue Global Open Call 2026「Brave New Visions」", org: "Vogue Italia / PhotoVogue｜海外・国際公募（写真・マルチメディア）", deadline: "2026/09/11", cv: "mid", cvText: "中〜高。応募無料、18歳以上で国際的に開放。写真を起点とした実験的表現を世界的なファッション・写真メディアで発表できる。", tags: ["応募無料", "18歳以上", "写真・マルチメディア"], what: "「Brave New Visions: Creativity as Rebellion」をテーマに、写真・映像・マルチメディア作品を募集。Outstanding Vision Grant $6,000、Vision Grant $4,000、Rising Voice Grant $2,000の3グラント。PhotoVogue Festivalでの発表機会やVogue各国版掲載の可能性あり。応募期間は2026/5/14〜9/11。", why: "写真を起点に転写・mixed mediaへ展開する作風を、ファインアート/実験的表現のカテゴリーで国際的な写真メディアに出せる。応募無料。", fee: "締切は2026/9/11 23:59 CET。応募無料。", url: "https://site.picter.com/photovogue-brave-new-visions-global-open-call-2026" }
+        { id: "photovogue-global-open-call-2026", title: "PhotoVogue Global Open Call 2026「Brave New Visions」", org: "Vogue Italia / PhotoVogue｜海外・国際公募（写真・マルチメディア）", deadline: "2026/09/11", cv: "mid", cvText: "中〜高。応募無料、18歳以上で国際的に開放。写真を起点とした実験的表現を世界的なファッション・写真メディアで発表できる。", tags: ["応募無料", "18歳以上", "写真・マルチメディア"], what: "「Brave New Visions: Creativity as Rebellion」をテーマに、写真・映像・マルチメディア作品を募集。Outstanding Vision Grant $6,000、Vision Grant $4,000、Rising Voice Grant $2,000の3グラント。PhotoVogue Festivalでの発表機会やVogue各国版掲載の可能性あり。応募期間は2026/5/14〜9/11。", why: "写真を起点に転写・mixed mediaへ展開する作風を、ファインアート/実験的表現のカテゴリーで国際的な写真メディアに出せる。応募無料。", fee: "締切は2026/9/11 23:59 CET。応募無料。", url: "https://site.picter.com/photovogue-brave-new-visions-global-open-call-2026" },
+        { id: "berlin-photo-awards-2026", title: "Berlin Photo Awards 2026", org: "Berlin Photo Awards｜海外・国際写真公募", deadline: "2026/06/27", cv: "low", cvText: "低〜中。商業的な国際写真コンペでCV上の価値は大きくないが、応募料が比較的低額で海外公募の実績を積む足がかりになる。", tags: ["応募料 €25〜", "AI生成不可", "Fine Art部門あり"], what: "ポートレート・建築・モノクロ・コンセプチュアル・ファインアート等の部門別に作品を募集する国際写真コンペ。総額€4,000の賞金（最優秀賞€1,000、各部門賞€100）。AI生成画像は不可。締切は2026/6/27。", why: "写真を起点とした転写・mixed media作品の写真パートを、Fine Art／Conceptual部門で発表できる。", fee: "1点目€25、追加部門ごとに€10（早期割引は終了済み）。", url: "https://www.berlinphotoawards.com/" }
       ]
     },
     {
@@ -44,7 +46,6 @@ window.OPENCALLS = {
   ],
   upcoming: [
     { id: "mimoca-eye-vol2", title: "第2回 MIMOCA EYE", org: "丸亀市猪熊弦一郎現代美術館｜国内・美術館個展機会", opens: "2026/07/15", deadline: "2026/09/15", cv: "high", tags: ["36歳以下", "活動歴概ね3年以上", "ジャンル不問"], what: "現代美術館での個展機会が付く公募。ジャンル不問。応募資格は『2026/4/1時点で36歳以下・活動歴概ね3年以上・美術館での個展未経験』。応募は無料（制作・出品費は自己負担）。", url: "https://www.mimoca.jp/mimoca-eye/vol2/" },
-    { id: "scarts-koubo-2027", title: "SCARTS企画公募2027", org: "札幌文化芸術交流センターSCARTS｜国内・企画公募", opens: "2026/06/15", deadline: "2026/07/17", cv: "mid", tags: ["年齢・居住・拠点不問", "ジャンル自由"], what: "SCARTSの施設・備品を提供して企画の実現を後押しする公募。対象は文化芸術活動を行う団体・個人（年齢・居住・拠点不問）、ジャンル自由。受付は2026/6/15〜7/17必着。", url: "https://www.sapporo-community-plaza.jp/scartskoubo.html" },
     { id: "asahi-art-grant-2027", title: "朝日新聞文化財団 芸術活動助成（美術・2027年度）", org: "朝日新聞文化財団｜国内・助成", opens: "2026/07/01", deadline: "2026/10/25", cv: "mid", tags: ["展覧会・プロジェクト助成"], what: "2027年度(2027/4〜2028/3実施)の美術分野の活動への助成。受付は2026/7/1〜10/25。今後の個展・プロジェクトの資金計画に組み込める。", url: "https://www.asahizaidan.or.jp/grant/grant01.html" }
   ],
   openings: [
@@ -100,7 +101,10 @@ window.OPENCALLS = {
     "KAF Young Prize 2026（締切3/31）／ACTアート大賞展（2/8）／アイスタイル財団 助成（1/31）／BBA Artist Prize（2025/12/8）… 受付終了。",
     "小笠原敏晶記念財団 助成 … 2026年度は募集前（調整中）。前年実績では7〜9月募集。",
     "Hiroshima MoCA FIVE 25/26／TOKAS-Emerging／Tokyo Contemporary Art Award … 前回受付終了。次回を監視（TCAAは活動歴10年以上が対象で現段階は対象外）。",
-    "CAF賞（学生限定）／Circulation(s)（欧州在住限定）／STPLN(Culture Moves Europe対象国在住限定)／The Bennett Prize（女性限定）… 応募資格の対象外。"
+    "CAF賞（学生限定）／Circulation(s)（欧州在住限定）／STPLN(Culture Moves Europe対象国在住限定)／The Bennett Prize（女性限定）… 応募資格の対象外。",
+    "Photography+ Emerging Talent Issue 2026（Photoworks・英国）… 締切2026/6/15 16:00 UTCで本日時点では受付終了。",
+    "第27回 日本・フランス現代美術世界展 エスパス・プリヴェ部門（JIAS／欧州美術クラブ）… 出品料に依存した商業サロン形式の公募展のため見送り。",
+    "アーツサポート関西 2026年度公募助成「未来アート寄金」… 募集期間2025/12/8〜2026/1/8で本日時点では受付終了（次回募集を監視）。"
   ],
-  disclaimer: "掲載は本日（2026/6/15）に応募ページ・募集要項まで確認したものです。締切間際の変更等が生じた場合は各公式ページが優先します。"
+  disclaimer: "掲載は本日（2026/6/17）に応募ページ・募集要項まで確認したものです。締切間際の変更等が生じた場合は各公式ページが優先します。"
 };
